@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   Container,
   Title,
@@ -8,10 +8,11 @@ import {
   Button,
   Stack,
   Loader,
+  Transition,
 } from '@mantine/core';
 import { useMantineTheme } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
-import { IconPlus, IconBulb } from '@tabler/icons-react';
+import { IconPlus, IconBulb, IconUser } from '@tabler/icons-react';
 import IdeaCard from '../components/IdeaCard';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -41,27 +42,34 @@ const transformIdeaForCard = (idea: Idea) => {
 };
 
 export default function HomePage() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [activeTab, setActiveTab] = useState<string | null>('trending');
   const [ideas, setIdeas] = useState<Idea[]>([]);
   const [loading, setLoading] = useState(true);
+  const reqIdRef = useRef(0);
 
   const theme = useMantineTheme();
   const isMobile = useMediaQuery(`(max-width: ${theme.breakpoints.sm})`);
 
   useEffect(() => {
     const loadIdeas = async () => {
+      let thisReq = 0;
       try {
         setLoading(true);
+        thisReq = ++reqIdRef.current;
         const params = activeTab === 'trending' ? { sort: 'trending' } : undefined;
         const loadedIdeas = await getIdeas(params);
-        setIdeas(loadedIdeas);
+        if (thisReq === reqIdRef.current) {
+          setIdeas(loadedIdeas);
+        }
       } catch (err) {
         console.error('Ошибка при загрузке идей:', err);
       } finally {
-        setLoading(false);
+        if (reqIdRef.current === thisReq) {
+          setLoading(false);
+        }
       }
     };
     loadIdeas();
@@ -102,18 +110,16 @@ export default function HomePage() {
             <Title order={isMobile ? 3 : 2} c="white">IdeaHub</Title>
           </Group>
           <Group gap="xs">
-            <ActionIcon
-              size={isMobile ? 'md' : 'lg'}
-              radius="xl"
-              color="blue"
-              onClick={() => navigate('/ideas/new')}
-            >
-              <IconPlus size={18} />
-            </ActionIcon>
             {user ? (
-              <Button variant="subtle" color="gray" onClick={logout} size={isMobile ? 'xs' : 'sm'}>
-                Выйти
-              </Button>
+              <ActionIcon
+                size={isMobile ? 'md' : 'lg'}
+                radius="xl"
+                color="blue"
+                onClick={() => navigate('/profile')}
+                title="Профиль"
+              >
+                <IconUser size={18} />
+              </ActionIcon>
             ) : (
               <Button variant="subtle" color="blue" onClick={() => navigate('/login')} size={isMobile ? 'xs' : 'sm'}>
                 Войти
@@ -132,6 +138,7 @@ export default function HomePage() {
             variant={activeTab === 'trending' ? 'filled' : 'outline'}
             color="blue"
             onClick={() => setActiveTab('trending')}
+            disabled={loading}
           >
             В тренде
           </Button>
@@ -141,6 +148,7 @@ export default function HomePage() {
             variant={activeTab === 'new' ? 'filled' : 'outline'}
             color="blue"
             onClick={() => setActiveTab('new')}
+            disabled={loading}
           >
             Новые
           </Button>
@@ -150,9 +158,21 @@ export default function HomePage() {
             variant={activeTab === 'best' ? 'filled' : 'outline'}
             color="blue"
             onClick={() => setActiveTab('best')}
+            disabled={loading}
           >
             Лучшие
           </Button>
+          {user && (
+            <ActionIcon
+              size={isMobile ? 'md' : 'lg'}
+              radius="xl"
+              color="blue"
+              onClick={() => navigate('/ideas/new')}
+              title="Добавить идею"
+            >
+              <IconPlus size={18} />
+            </ActionIcon>
+          )}
         </Group>
       </Container>
 
@@ -180,7 +200,19 @@ export default function HomePage() {
               </Text>
             ) : (
               displayedIdeas.map((idea) => (
-                <IdeaCard key={idea.id} idea={idea} />
+                <Transition
+                  key={idea.id}
+                  mounted
+                  transition="slide-up"
+                  duration={180}
+                  timingFunction="ease-out"
+                >
+                  {(styles) => (
+                    <div style={styles}>
+                      <IdeaCard idea={idea} />
+                    </div>
+                  )}
+                </Transition>
               ))
             )}
           </Stack>

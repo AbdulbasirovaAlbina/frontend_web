@@ -8,6 +8,7 @@ import IdeaPage from './pages/IdeaPage';
 import EditIdeaPage from './pages/EditIdeaPage';
 import TermsPage from './pages/TermsPage';
 import PrivacyPage from './pages/PrivacyPage';
+import ProfilePage from './pages/ProfilePage';
 
 function App() {
   const { user } = useAuth();
@@ -18,6 +19,10 @@ function App() {
         <Route
           path="/"
           element={user ? <HomePage /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/profile"
+          element={user ? <ProfilePage /> : <Navigate to="/login" />}
         />
         <Route path="/terms" element={<TermsPage />} />
         <Route path="/privacy" element={<PrivacyPage />} />

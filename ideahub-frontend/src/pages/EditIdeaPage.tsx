@@ -82,7 +82,7 @@ export default function EditIdeaPage() {
 
   if (loading) {
     return (
-      <Container size="sm" my={20}>
+      <Container size="md" my={20}>
         <Group justify="center" mt="xl">
           <Loader size="lg" />
         </Group>
@@ -92,7 +92,7 @@ export default function EditIdeaPage() {
 
   if (error || !idea) {
     return (
-      <Container size="sm" my={20}>
+      <Container size="md" my={20}>
         <Title mb="md">{error || 'Идея не найдена'}</Title>
         <Button onClick={() => navigate('/')}>На главную</Button>
       </Container>
@@ -100,7 +100,7 @@ export default function EditIdeaPage() {
   }
 
   return (
-    <Container size="sm" my={20}>
+    <Container size="md" my={20}>
       <ActionIcon size="lg" variant="subtle" onClick={() => navigate(-1)} mb="md">
         <IconArrowLeft />
       </ActionIcon>
@@ -127,6 +127,7 @@ export default function EditIdeaPage() {
         required
         mb="md"
         disabled={saving}
+        styles={{ input: { backgroundColor: '#2a2a3a', color: 'white' } }}
       />
 
       <Textarea
@@ -135,9 +136,12 @@ export default function EditIdeaPage() {
         value={description}
         onChange={(e) => setDescription(e.currentTarget.value)}
         required
-        minRows={6}
+        autosize
+        minRows={10}
+        maxRows={24}
         mb="xl"
         disabled={saving}
+        styles={{ input: { backgroundColor: '#2a2a3a', color: 'white', lineHeight: 1.6 } }}
       />
 
       <Group justify="space-between">

@@ -75,3 +75,9 @@ export const getCurrentUser = async (): Promise<User> => {
   const response = await api.get('/auth/me');
   return response.data;
 };
+
+// Обновить текущего пользователя
+export const updateCurrentUser = async (data: { username: string; email: string }): Promise<User> => {
+  const response = await api.put('/auth/me', data);
+  return response.data;
+};

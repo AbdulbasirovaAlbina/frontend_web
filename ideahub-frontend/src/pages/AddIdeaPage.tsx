@@ -6,17 +6,16 @@ import {
   Textarea,
   Button,
   ActionIcon,
-  Loader,
   Notification,
 } from '@mantine/core';
 import { IconArrowLeft, IconX } from '@tabler/icons-react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { createIdea } from '../api/ideaService';
 
 export default function AddIdeaPage() {
   const navigate = useNavigate();
-  const location = useLocation();
+  // const location = useLocation();
   const { user } = useAuth();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -29,7 +28,7 @@ export default function AddIdeaPage() {
     try {
       setSubmitting(true);
       setError(null);
-      const newIdea = await createIdea({
+      await createIdea({
         title: title.trim(),
         description: description.trim(),
       });
@@ -45,7 +44,7 @@ export default function AddIdeaPage() {
   // Проверка авторизации
   if (!user) {
     return (
-      <Container size="sm" my={20}>
+      <Container size="md" my={20}>
         <Title mb="md">Необходима авторизация</Title>
         <Button onClick={() => navigate('/login')}>Войти</Button>
       </Container>
@@ -53,7 +52,7 @@ export default function AddIdeaPage() {
   }
 
   return (
-    <Container size="sm" my={20}>
+    <Container size="md" my={20}>
       {/* Кнопка назад */}
       <ActionIcon 
         size="lg" 
@@ -88,6 +87,7 @@ export default function AddIdeaPage() {
         required
         mb="md"
         disabled={submitting}
+        styles={{ input: { backgroundColor: '#2a2a3a', color: 'white' } }}
       />
 
       <Textarea
@@ -96,9 +96,12 @@ export default function AddIdeaPage() {
         value={description}
         onChange={(e) => setDescription(e.currentTarget.value)}
         required
-        minRows={6}
+        autosize
+        minRows={10}
+        maxRows={24}
         mb="xl"
         disabled={submitting}
+        styles={{ input: { backgroundColor: '#2a2a3a', color: 'white', lineHeight: 1.6 } }}
       />
 
       <Button
