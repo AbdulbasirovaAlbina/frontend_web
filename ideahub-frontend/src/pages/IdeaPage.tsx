@@ -15,6 +15,8 @@ import {
   Loader,
   Notification,
 } from '@mantine/core';
+import { useMantineTheme } from '@mantine/core';
+import { useMediaQuery } from '@mantine/hooks';
 import { IconArrowLeft, IconX } from '@tabler/icons-react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -31,13 +33,15 @@ export default function IdeaPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
+  const theme = useMantineTheme();
+  const isMobile = useMediaQuery(`(max-width: ${theme.breakpoints.sm})`);
   const [modalOpened, setModalOpened] = useState(false);
   const [deleteModalOpened, setDeleteModalOpened] = useState(false);
   const [idea, setIdea] = useState<Idea | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
-  // Все хуки должны быть объявлены до условных возвратов
+
   const [comments, setComments] = useState<Comment[]>([]);
   const [comment, setComment] = useState('');
   const [currentNovelty, setCurrentNovelty] = useState(0);
@@ -56,12 +60,10 @@ export default function IdeaPage() {
         setIdea(loadedIdea);
         setCurrentNovelty(loadedIdea.avgNovelty);
         setCurrentFeasibility(loadedIdea.avgFeasibility);
-        
-        // Загружаем комментарии
+
         const loadedComments = await getComments(Number(id));
         setComments(loadedComments);
-        
-        // Проверяем, оценил ли пользователь уже эту идею
+
         if (user && user.id !== loadedIdea.author.id) {
           try {
             setCheckingRated(true);
@@ -88,7 +90,7 @@ export default function IdeaPage() {
       }
     };
     loadIdea();
-  }, [id, location.state, user]); // Перезагружаем при изменении id, state или пользователя
+  }, [id, location.state, user]);
 
   if (loading) {
     return (
@@ -113,18 +115,15 @@ export default function IdeaPage() {
     if (!user || !idea) return;
     
     try {
-      // Сохраняем оценку через API
+
       const updatedIdea = await rateIdea(idea.id, { novelty, feasibility });
       
-      // Обновляем состояние с новыми средними значениями
       setIdea(updatedIdea);
       setCurrentNovelty(updatedIdea.avgNovelty);
       setCurrentFeasibility(updatedIdea.avgFeasibility);
       
-      // Помечаем, что пользователь уже оценил
       setUserHasRated(true);
-      
-      // Закрываем модалку
+
       setModalOpened(false);
     } catch (err: any) {
       if (err.response?.status === 403) {
@@ -156,11 +155,10 @@ export default function IdeaPage() {
     try {
       setDeleting(true);
       await deleteIdea(idea.id);
-      // Переходим на главную с обновлением данных
+
       navigate('/', { state: { refresh: Date.now() } });
     } catch (err: any) {
       
-      // Получаем сообщение об ошибке
       const errorMessage = err.response?.data?.message || 
                           err.response?.data || 
                           err.message || 
@@ -181,9 +179,9 @@ export default function IdeaPage() {
 
   return (
     <>
-      <Container size="md" my={20}>
+      <Container size={isMobile ? 'sm' : 'md'} my={20}>
       <ActionIcon 
-        size="lg" 
+        size={isMobile ? 'md' : 'lg'} 
         variant="subtle" 
         onClick={() => navigate('/', { state: { refresh: Date.now() } })} 
         mb="md"
@@ -206,11 +204,11 @@ export default function IdeaPage() {
 
         {/* КНОПКИ РЕДАКТИРОВАНИЯ И УДАЛЕНИЯ */}
         {user && user.id === idea.author.id && (
-          <Group justify="flex-end" mb="md">
+          <Group justify="flex-end" mb="md" wrap="wrap" gap="xs">
             <Button
               variant="subtle"
               color="blue"
-              size="sm"
+              size={isMobile ? 'xs' : 'sm'}
               onClick={() => navigate(`/ideas/${idea.id}/edit`)}
             >
               Редактировать
@@ -218,7 +216,7 @@ export default function IdeaPage() {
             <Button
               variant="subtle"
               color="red"
-              size="sm"
+              size={isMobile ? 'xs' : 'sm'}
               onClick={() => setDeleteModalOpened(true)}
             >
               Удалить
@@ -226,14 +224,14 @@ export default function IdeaPage() {
           </Group>
         )}
 
-        <Group gap="xs" mb="lg">
-          <Avatar size="sm" radius="xl" />
-          <Text size="sm" c="dimmed">
+        <Group gap="xs" mb="lg" wrap="wrap">
+          <Avatar size={isMobile ? 'xs' : 'sm'} radius="xl" />
+          <Text size={isMobile ? 'xs' : 'sm'} c="dimmed">
             Автор: {idea.author.username} · {formatDate(idea.createdAt)}
           </Text>
         </Group>
 
-        <Text size="md" mb="xl" style={{ lineHeight: 1.6 }}>
+        <Text size={isMobile ? 'sm' : 'md'} mb="xl" style={{ lineHeight: 1.6 }}>
           {idea.description}
         </Text>
 
@@ -242,15 +240,15 @@ export default function IdeaPage() {
           <Paper p="md" withBorder mb="xl">
             <Title order={3} mb="md">Оцените эту идею</Title>
             <Stack gap="md">
-              <Group justify="space-between" align="center">
-                <Text w={120}>Новизна</Text>
+              <Group justify="space-between" align="center" wrap="wrap" gap="xs">
+                <Text w={120} size={isMobile ? 'sm' : 'md'}>Новизна</Text>
                 <Rating value={currentNovelty} readOnly fractions={2} />
-                <Text size="sm" c="dimmed" ml="xs">{currentNovelty > 0 ? currentNovelty.toFixed(2) : '0'}/5</Text>
+                <Text size={isMobile ? 'xs' : 'sm'} c="dimmed" ml="xs">{currentNovelty > 0 ? currentNovelty.toFixed(2) : '0'}/5</Text>
               </Group>
-              <Group justify="space-between" align="center">
-                <Text w={120}>Реализуемость</Text>
+              <Group justify="space-between" align="center" wrap="wrap" gap="xs">
+                <Text w={120} size={isMobile ? 'sm' : 'md'}>Реализуемость</Text>
                 <Rating value={currentFeasibility} readOnly fractions={2} />
-                <Text size="sm" c="dimmed" ml="xs">{currentFeasibility > 0 ? currentFeasibility.toFixed(2) : '0'}/5</Text>
+                <Text size={isMobile ? 'xs' : 'sm'} c="dimmed" ml="xs">{currentFeasibility > 0 ? currentFeasibility.toFixed(2) : '0'}/5</Text>
               </Group>
               {userHasRated ? (
                 <Text size="sm" c="dimmed" ta="center" mt="xs">
@@ -280,15 +278,15 @@ export default function IdeaPage() {
           <Paper p="md" withBorder mb="xl">
             <Title order={3} mb="md">Рейтинг идеи</Title>
             <Stack gap="md">
-              <Group justify="space-between" align="center">
-                <Text w={120}>Новизна</Text>
+              <Group justify="space-between" align="center" wrap="wrap" gap="xs">
+                <Text w={120} size={isMobile ? 'sm' : 'md'}>Новизна</Text>
                 <Rating value={currentNovelty} readOnly fractions={2} />
-                <Text size="sm" c="dimmed" ml="xs">{currentNovelty > 0 ? currentNovelty.toFixed(2) : '0'}/5</Text>
+                <Text size={isMobile ? 'xs' : 'sm'} c="dimmed" ml="xs">{currentNovelty > 0 ? currentNovelty.toFixed(2) : '0'}/5</Text>
               </Group>
-              <Group justify="space-between" align="center">
-                <Text w={120}>Реализуемость</Text>
+              <Group justify="space-between" align="center" wrap="wrap" gap="xs">
+                <Text w={120} size={isMobile ? 'sm' : 'md'}>Реализуемость</Text>
                 <Rating value={currentFeasibility} readOnly fractions={2} />
-                <Text size="sm" c="dimmed" ml="xs">{currentFeasibility > 0 ? currentFeasibility.toFixed(2) : '0'}/5</Text>
+                <Text size={isMobile ? 'xs' : 'sm'} c="dimmed" ml="xs">{currentFeasibility > 0 ? currentFeasibility.toFixed(2) : '0'}/5</Text>
               </Group>
               {user && user.id === idea.author.id && (
                 <Text size="sm" c="dimmed" ta="center" mt="xs">

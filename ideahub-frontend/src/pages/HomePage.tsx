@@ -4,12 +4,13 @@ import {
   Title,
   Group,
   ActionIcon,
-  Tabs,
   Text,
   Button,
   Stack,
   Loader,
 } from '@mantine/core';
+import { useMantineTheme } from '@mantine/core';
+import { useMediaQuery } from '@mantine/hooks';
 import { IconPlus, IconBulb } from '@tabler/icons-react';
 import IdeaCard from '../components/IdeaCard';
 import { useAuth } from '../contexts/AuthContext';
@@ -17,7 +18,6 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { getIdeas } from '../api/ideaService';
 import type { Idea } from '../api/types';
 
-// Преобразование Idea в формат для IdeaCard
 const transformIdeaForCard = (idea: Idea) => {
   const avgRating =
     idea.avgNovelty && idea.avgFeasibility
@@ -48,7 +48,9 @@ export default function HomePage() {
   const [ideas, setIdeas] = useState<Idea[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Загрузка идей из API
+  const theme = useMantineTheme();
+  const isMobile = useMediaQuery(`(max-width: ${theme.breakpoints.sm})`);
+
   useEffect(() => {
     const loadIdeas = async () => {
       try {
@@ -65,7 +67,6 @@ export default function HomePage() {
     loadIdeas();
   }, [location.pathname, location.state, activeTab]); 
 
-  // ФИЛЬТРАЦИЯ
   const getFilteredIdeas = () => {
     let filtered = [...ideas].map(transformIdeaForCard);
 
@@ -94,27 +95,27 @@ export default function HomePage() {
   return (
     <>
       {/* ШАПКА */}
-      <Container size="lg" py="md">
-        <Group justify="space-between" align="center">
-          <Group>
-            <IconBulb size={32} color="white" />
-            <Title order={2} c="white">IdeaHub</Title>
+      <Container size={isMobile ? 'sm' : 'lg'} py="md">
+        <Group justify="space-between" align="center" wrap="wrap" gap="sm">
+          <Group gap="xs">
+            <IconBulb size={isMobile ? 28 : 32} color="white" />
+            <Title order={isMobile ? 3 : 2} c="white">IdeaHub</Title>
           </Group>
-          <Group>
+          <Group gap="xs">
             <ActionIcon
-              size="lg"
+              size={isMobile ? 'md' : 'lg'}
               radius="xl"
               color="blue"
               onClick={() => navigate('/ideas/new')}
             >
-              <IconPlus size={20} />
+              <IconPlus size={18} />
             </ActionIcon>
             {user ? (
-              <Button variant="subtle" color="gray" onClick={logout}>
+              <Button variant="subtle" color="gray" onClick={logout} size={isMobile ? 'xs' : 'sm'}>
                 Выйти
               </Button>
             ) : (
-              <Button variant="subtle" color="blue" onClick={() => navigate('/login')}>
+              <Button variant="subtle" color="blue" onClick={() => navigate('/login')} size={isMobile ? 'xs' : 'sm'}>
                 Войти
               </Button>
             )}
@@ -122,22 +123,56 @@ export default function HomePage() {
         </Group>
       </Container>
 
-      {/* ТАБЫ */}
-      <Tabs value={activeTab} onChange={setActiveTab} color="blue">
-        <Tabs.List grow>
-          <Tabs.Tab value="trending">В тренде</Tabs.Tab>
-          <Tabs.Tab value="new">Новые</Tabs.Tab>
-          <Tabs.Tab value="best">Лучшие</Tabs.Tab>
-        </Tabs.List>
-      </Tabs>
+      {/* ФИЛЬТРЫ КНОПКАМИ */}
+      <Container size={isMobile ? 'sm' : 'lg'}>
+        <Group justify="center" wrap="wrap" gap="xs">
+          <Button
+            radius="xl"
+            size={isMobile ? 'xs' : 'sm'}
+            variant={activeTab === 'trending' ? 'filled' : 'outline'}
+            color="blue"
+            onClick={() => setActiveTab('trending')}
+          >
+            В тренде
+          </Button>
+          <Button
+            radius="xl"
+            size={isMobile ? 'xs' : 'sm'}
+            variant={activeTab === 'new' ? 'filled' : 'outline'}
+            color="blue"
+            onClick={() => setActiveTab('new')}
+          >
+            Новые
+          </Button>
+          <Button
+            radius="xl"
+            size={isMobile ? 'xs' : 'sm'}
+            variant={activeTab === 'best' ? 'filled' : 'outline'}
+            color="blue"
+            onClick={() => setActiveTab('best')}
+          >
+            Лучшие
+          </Button>
+        </Group>
+      </Container>
 
       {/* СПИСОК ИДЕЙ */}
-      <Container size="lg" mt="md">
-        {loading ? (
-          <Group justify="center" mt="xl">
-            <Loader size="lg" />
-          </Group>
-        ) : (
+      <Container size={isMobile ? 'sm' : 'lg'} mt="md">
+        <div style={{ position: 'relative', minHeight: 120 }}>
+          {loading && (
+            <Group
+              justify="center"
+              style={{
+                position: 'absolute',
+                inset: 0,
+                background: 'rgba(0,0,0,0.15)',
+                backdropFilter: 'blur(2px)',
+                zIndex: 1,
+              }}
+            >
+              <Loader size="md" />
+            </Group>
+          )}
           <Stack gap="md">
             {displayedIdeas.length === 0 ? (
               <Text ta="center" c="dimmed">
@@ -149,7 +184,7 @@ export default function HomePage() {
               ))
             )}
           </Stack>
-        )}
+        </div>
       </Container>
     </>
   );

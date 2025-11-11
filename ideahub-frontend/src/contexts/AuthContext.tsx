@@ -25,7 +25,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           const userData = await getCurrentUser();
           setUser(userData);
         } catch (err) {
-          // Если токен невалидный или пользователь не найден, удаляем токен
           console.warn('Не удалось загрузить пользователя, требуется повторный вход');
           Cookies.remove('token');
           setUser(null);

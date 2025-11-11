@@ -36,7 +36,6 @@ export const login = async (email: string, password: string): Promise<AuthRespon
     
     throw new Error('Неверный email или пароль');
   } catch (error: any) {
-    // Обрабатываем ошибки от бэкенда
     if (error.response) {
       const message = error.response.data || error.response.statusText || 'Ошибка входа';
       throw new Error(message);
@@ -47,11 +46,8 @@ export const login = async (email: string, password: string): Promise<AuthRespon
 
 export const register = async (username: string, email: string, password: string): Promise<AuthResponse> => {
   try {
-    // Бэкенд возвращает UserDto при регистрации
     const response = await api.post('/auth/register', { username, email, password });
     const userData = response.data;
-    
-    // После регистрации нужно войти, чтобы получить токен
     const loginResponse = await api.post('/auth/login', { email, password });
     const token = loginResponse.data; // JWT токен
     Cookies.set('token', token, { sameSite: 'lax' });

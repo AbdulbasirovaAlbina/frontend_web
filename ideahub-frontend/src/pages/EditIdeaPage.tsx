@@ -34,8 +34,6 @@ export default function EditIdeaPage() {
       try {
         setLoading(true);
         const loadedIdea = await getIdea(Number(id));
-        
-        // Проверка прав доступа (бэкенд должен возвращать 403, но проверяем и на фронте)
         if (loadedIdea.author.id !== user.id) {
           setError('У вас нет прав на редактирование этой идеи');
           return;
@@ -69,7 +67,7 @@ export default function EditIdeaPage() {
         title: title.trim(),
         description: description.trim(),
       });
-      // Используем replace: false и добавляем timestamp для обновления данных
+
       navigate(`/ideas/${id}`, { replace: false, state: { refresh: Date.now() } });
     } catch (err: any) {
       if (err.response?.status === 403) {

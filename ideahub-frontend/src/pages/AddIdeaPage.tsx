@@ -33,7 +33,7 @@ export default function AddIdeaPage() {
         title: title.trim(),
         description: description.trim(),
       });
-      // Переходим на главную с обновлением данных
+
       navigate('/', { state: { refresh: Date.now() } });
     } catch (err: any) {
       setError(err.response?.data?.message || err.message || 'Ошибка при создании идеи');
